@@ -1,6 +1,7 @@
 internal import File_System
 public import JSON
 internal import Manifest_Loader
+internal import Manifest_Byte_Parser
 public import Manifest
 internal import Process
 internal import URI_Standard
