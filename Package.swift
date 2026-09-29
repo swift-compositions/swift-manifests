@@ -18,8 +18,7 @@ let package = Package(
         .library(name: "Manifests Test Support", targets: ["Manifests Test Support"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/swift-molecules/swift-manifest-byte-parser.git", branch: "main"),
-        .package(url: "https://github.com/swift-atoms/swift-manifest.git", branch: "main"),
+        .package(url: "https://github.com/swift-atoms/swift-manifest.git", branch: "main", traits: ["Parser"]),
         .package(url: "https://github.com/swift-atoms/swift-package.git", branch: "main"),
         .package(url: "https://github.com/swift-standards/swift-spm-standard.git", branch: "main"),
         .package(url: "https://github.com/swift-standards/swift-uri-standard.git", branch: "main"),
@@ -46,7 +45,6 @@ let package = Package(
         .target(
             name: "Manifest Resolver",
             dependencies: [
-                .product(name: "Manifest Byte Parser", package: "swift-manifest-byte-parser"),
                 .product(name: "Manifest", package: "swift-manifest"),
                 "Manifest Loader",
                 .product(name: "File System", package: "swift-file-system"),
