@@ -7,8 +7,6 @@ import URI_Standard
 
 #if canImport(Darwin)
     import Darwin
-#elseif canImport(Glibc)
-    import Glibc
 #endif
 
 @Suite
@@ -233,10 +231,19 @@ extension `Manifest.Resolver Tests`.Integration {
         }
     #endif
 
+    private static func _testImagePath() -> Swift.String? {
+        #if canImport(Darwin)
+            var info = Dl_info()
+            guard unsafe dladdr(#dsohandle, &info) != 0, let name = unsafe info.dli_fname else { return nil }
+            return unsafe Swift.String(cString: name)
+        #else
+            guard let executable = CommandLine.arguments.first, executable.hasPrefix("/") else { return nil }
+            return executable
+        #endif
+    }
+
     private static func _checkoutsDirectoriesAboveTestImage() -> [Swift.String] {
-        var info = Dl_info()
-        guard unsafe dladdr(#dsohandle, &info) != 0, let name = unsafe info.dli_fname else { return [] }
-        var directory = unsafe Swift.String(cString: name)
+        guard var directory = Self._testImagePath() else { return [] }
         var candidates: [Swift.String] = []
         while let slash = directory.lastIndex(of: "/"), slash != directory.startIndex {
             directory = Swift.String(directory[..<slash])
