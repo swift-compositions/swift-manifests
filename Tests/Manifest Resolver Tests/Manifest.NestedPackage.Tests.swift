@@ -178,3 +178,25 @@ extension Manifest.NestedPackage {
         }
     }
 }
+
+extension Manifest.NestedPackage.Test {
+    @Test
+    func `dispatch runs the Lint executable by default`() {
+        let invocation = Manifest.NestedPackage.invocation(
+            lintPackagePath: "/consumer/Lint",
+            executable: "Lint",
+            arguments: ["--strict"]
+        )
+        #expect(invocation == ["swift", "run", "--package-path", "/consumer/Lint", "Lint", "--strict"])
+    }
+
+    @Test
+    func `dispatch runs a caller-chosen executable that cannot collide with a Lint library target`() {
+        let invocation = Manifest.NestedPackage.invocation(
+            lintPackagePath: "/consumer/Lint",
+            executable: "Lint Runner",
+            arguments: []
+        )
+        #expect(invocation == ["swift", "run", "--package-path", "/consumer/Lint", "Lint Runner"])
+    }
+}

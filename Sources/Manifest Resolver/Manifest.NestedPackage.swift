@@ -32,18 +32,21 @@ extension Manifest.NestedPackage {
 
     public static func dispatch(
         at consumerPackageRoot: Swift.String,
-        arguments: [Swift.String]
+        arguments: [Swift.String],
+        executable: Swift.String = "Lint"
     ) throws(Self.Error) -> Swift.Int32 {
         let lintPackagePath = consumerPackageRoot + "/Lint"
         try Self.invalidateStaleResolution(
             consumerPackageRoot: consumerPackageRoot,
             lintPackagePath: lintPackagePath
         )
-        let invocation: [Swift.String] =
-            ["swift", "run", "--package-path", lintPackagePath, "Lint"] + arguments
         let configuration = Process.Spawn.Configuration(
             executable: "/usr/bin/env",
-            arguments: invocation
+            arguments: Self.invocation(
+                lintPackagePath: lintPackagePath,
+                executable: executable,
+                arguments: arguments
+            )
         )
         let status: Process.Status
         do throws(Process.Error) {
@@ -59,6 +62,14 @@ extension Manifest.NestedPackage {
         case .signaled(let s): return -s
         case .stopped(let s): return -s
         }
+    }
+
+    internal static func invocation(
+        lintPackagePath: Swift.String,
+        executable: Swift.String,
+        arguments: [Swift.String]
+    ) -> [Swift.String] {
+        ["swift", "run", "--package-path", lintPackagePath, executable] + arguments
     }
 
     internal static func invalidateStaleResolution(
