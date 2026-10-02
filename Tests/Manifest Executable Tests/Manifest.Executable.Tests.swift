@@ -120,7 +120,7 @@ extension Manifest.Executable.Test.`Render Package Swift` {
             ],
             platforms: [".macOS(.v27)"],
             swiftLanguageModes: [".v6"],
-            toolsVersion: "6.3.1"
+            toolsVersion: "6.4"
         )
         let rendered: Swift.String = try Manifest.Executable.Materializer.renderPackageSwift(
             configuration: configuration
@@ -151,7 +151,7 @@ extension Manifest.Executable.Test.`Render Package Swift` {
             ],
             platforms: [".macOS(.v27)"],
             swiftLanguageModes: [".v6"],
-            toolsVersion: "6.3.1"
+            toolsVersion: "6.4"
         )
         let rendered: Swift.String = try Manifest.Executable.Materializer.renderPackageSwift(
             configuration: configuration
@@ -174,7 +174,7 @@ extension Manifest.Executable.Test.`Render Package Swift` {
             platforms: [".macOS(.v27)"],
             swiftLanguageModes: [".v6"],
             ecosystemSettings: nil,
-            toolsVersion: "6.3.1"
+            toolsVersion: "6.4"
         )
         let rendered: Swift.String = try Manifest.Executable.Materializer.renderPackageSwift(
             configuration: configuration
@@ -196,7 +196,7 @@ extension Manifest.Executable.Test.`Render Package Swift` {
                 ".enableUpcomingFeature(\"ExistentialAny\")",
                 ".enableUpcomingFeature(\"MemberImportVisibility\")",
             ],
-            toolsVersion: "6.3.1"
+            toolsVersion: "6.4"
         )
         let rendered: Swift.String = try Manifest.Executable.Materializer.renderPackageSwift(
             configuration: configuration
@@ -232,7 +232,7 @@ extension Manifest.Executable.Test.`Render Package Swift` {
             platforms: [".macOS(.v27)"],
             swiftLanguageModes: [".v6"],
             ecosystemSettings: [".enableUpcomingFeature(\"ExistentialAny\")"],
-            toolsVersion: "6.3.1"
+            toolsVersion: "6.4"
         )
     }
 }
