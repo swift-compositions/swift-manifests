@@ -1,3 +1,4 @@
+public import Manifest_Loader
 public import URI_Standard
 
 extension Manifest.Resolver {
@@ -9,5 +10,7 @@ extension Manifest.Resolver {
         case parentChainCycle(visited: [URI], at: URI)
 
         case parentChainTooDeep(depth: Swift.Int)
+
+        case consumerLoadFailed(Manifest.Error)
     }
 }

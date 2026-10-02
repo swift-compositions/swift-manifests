@@ -36,6 +36,14 @@ extension Manifest.Resolver {
         buildConfiguration: (M, C?) -> C
     ) throws(Manifest.Resolver<M, C>.Error) -> C {
 
+        guard
+            let consumerSource = readSource(
+                at: consumerPackageRoot + "/" + filename
+            )
+        else {
+            return defaultConfiguration()
+        }
+
         let consumerManifest: M
         do throws(Manifest.Error) {
             consumerManifest = try Manifest.load(
@@ -46,17 +54,10 @@ extension Manifest.Resolver {
                 dependencies: dependencies
             )
         } catch {
-            return defaultConfiguration()
+            throw .consumerLoadFailed(error)
         }
 
-        let consumerSource = readSource(
-            at: consumerPackageRoot + "/" + filename
-        )
-
-        guard
-            let consumerSource,
-            let firstParentURI = parseParent(in: consumerSource)
-        else {
+        guard let firstParentURI = parseParent(in: consumerSource) else {
             return buildConfiguration(consumerManifest, nil)
         }
 

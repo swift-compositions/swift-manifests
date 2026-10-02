@@ -2,7 +2,14 @@ import File_System
 import Testing
 import URI_Standard
 
+@testable import Manifest_Loader
 @testable import Manifest_Resolver
+
+#if canImport(Darwin)
+    import Darwin
+#elseif canImport(Glibc)
+    import Glibc
+#endif
 
 @Suite
 struct `Manifest.Resolver Tests` {
@@ -133,5 +140,117 @@ extension `Manifest.Resolver Tests`.`Edge Case` {
                 Issue.record("unexpected error: \(error)")
             }
         }
+    }
+}
+
+extension `Manifest.Resolver Tests`.Integration {
+    typealias Resolver = Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>
+
+    static func consumerRoot(key: Swift.String, manifest: Swift.String) throws -> Swift.String {
+        let root = "/tmp/swift-manifests-resolver-\(key)-\(Swift.UInt64.random(in: .min ... .max))"
+        try Manifest._createDirectoryRecursive(at: root)
+        try Manifest._writeAtomic(manifest, to: root + "/Lint.swift")
+        return root
+    }
+
+    static func resolve(
+        root: Swift.String,
+        dependencies: [Manifest.Dependency]
+    ) throws(Resolver.Error) -> `Manifest.Resolver Tests`.Configuration {
+        try Resolver.resolve(
+            consumerPackageRoot: root,
+            filename: "Lint.swift",
+            dependencies: dependencies,
+            defaultConfiguration: { `Manifest.Resolver Tests`.Configuration(value: 999) },
+            buildConfiguration: { manifest, _ in
+                `Manifest.Resolver Tests`.Configuration(value: manifest)
+            }
+        )
+    }
+
+    static func expectConsumerLoadFailed(
+        root: Swift.String,
+        dependencies: [Manifest.Dependency]
+    ) {
+        do {
+            let configuration = try resolve(root: root, dependencies: dependencies)
+            Issue.record("Expected consumerLoadFailed, resolved \(configuration) instead")
+        } catch {
+            guard case .consumerLoadFailed = error else {
+                Issue.record("Expected consumerLoadFailed, got \(error)")
+                return
+            }
+        }
+    }
+
+    @Test
+    func `a manifest with an unresolvable dependency throws consumerLoadFailed`() throws {
+        let root = try Self.consumerRoot(key: "missing-dependency", manifest: "let manifest: Int = 1\n")
+        Self.expectConsumerLoadFailed(
+            root: root,
+            dependencies: [
+                Manifest.Dependency(
+                    path: "/nonexistent/swift-manifests-missing-dependency",
+                    name: "swift-json",
+                    product: "JSON",
+                    imports: []
+                )
+            ]
+        )
+    }
+
+    @Test
+    func `a manifest that fails to compile throws consumerLoadFailed`() throws {
+        let root = try Self.consumerRoot(key: "compile-error", manifest: "let manifest: Int = \"not an integer\"\n")
+        Self.expectConsumerLoadFailed(root: root, dependencies: [])
+    }
+
+    #if !os(Windows)
+        @Test
+        func `a valid manifest still resolves through buildConfiguration`() throws {
+            let checkouts = Self._checkoutsDirectoriesAboveTestImage()
+            guard
+                let jsonPackagePath = Self._firstReadableDirectory(checkouts.map { $0 + "/swift-json" }),
+                let fileSystemPackagePath = Self._firstReadableDirectory(checkouts.map { $0 + "/swift-file-system" })
+            else {
+                Issue.record("Could not locate the swift-json / swift-file-system checkouts above the test image.")
+                return
+            }
+            let root = try Self.consumerRoot(key: "valid", manifest: "let manifest: Int = 7\n")
+            let configuration = try Self.resolve(
+                root: root,
+                dependencies: [
+                    Manifest.Dependency(path: jsonPackagePath, name: "swift-json", product: "JSON", imports: []),
+                    Manifest.Dependency(
+                        path: fileSystemPackagePath,
+                        name: "swift-file-system",
+                        product: "File System",
+                        imports: []
+                    ),
+                ]
+            )
+            #expect(configuration == `Manifest.Resolver Tests`.Configuration(value: 7))
+        }
+    #endif
+
+    private static func _checkoutsDirectoriesAboveTestImage() -> [Swift.String] {
+        var info = Dl_info()
+        guard unsafe dladdr(#dsohandle, &info) != 0, let name = unsafe info.dli_fname else { return [] }
+        var directory = unsafe Swift.String(cString: name)
+        var candidates: [Swift.String] = []
+        while let slash = directory.lastIndex(of: "/"), slash != directory.startIndex {
+            directory = Swift.String(directory[..<slash])
+            candidates.append(directory + "/checkouts")
+        }
+        return candidates
+    }
+
+    private static func _firstReadableDirectory(_ candidates: [Swift.String]) -> Swift.String? {
+        for candidate in candidates {
+            guard let directory = try? File.Directory(validating: candidate) else { continue }
+            guard (try? directory.entries()) != nil else { continue }
+            return candidate
+        }
+        return nil
     }
 }

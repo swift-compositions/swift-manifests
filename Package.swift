@@ -86,6 +86,7 @@ let package = Package(
             name: "Manifest Resolver Tests",
             dependencies: [
                 "Manifest Resolver",
+                "Manifest Loader",
                 "Manifests Test Support",
                 .product(name: "File System", package: "swift-file-system"),
                 .product(name: "URI Standard", package: "swift-uri-standard"),
