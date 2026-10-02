@@ -1,6 +1,12 @@
 import File_System
 import Testing
 
+#if canImport(Darwin)
+    import Darwin
+#elseif canImport(Glibc)
+    import Glibc
+#endif
+
 @testable import Manifest_Loader
 
 extension Manifest {
@@ -22,11 +28,11 @@ extension Manifest.Test.Integration {
                 let jsonPackagePath = Self._firstReadableDirectory([
                     manifestPackageRoot + "/.build/checkouts/swift-json",
                     foundationsRoot + "/swift-json",
-                ]),
+                ] + Self._checkoutsDirectoriesAboveTestImage().map { $0 + "/swift-json" }),
                 let fileSystemPackagePath = Self._firstReadableDirectory([
                     manifestPackageRoot + "/.build/checkouts/swift-file-system",
                     foundationsRoot + "/swift-file-system",
-                ])
+                ] + Self._checkoutsDirectoriesAboveTestImage().map { $0 + "/swift-file-system" })
             else {
 
                 Issue.record(
@@ -82,6 +88,18 @@ extension Manifest.Test.Integration {
             return candidate
         }
         return nil
+    }
+
+    private static func _checkoutsDirectoriesAboveTestImage() -> [Swift.String] {
+        var info = Dl_info()
+        guard unsafe dladdr(#dsohandle, &info) != 0, let name = unsafe info.dli_fname else { return [] }
+        var directory = unsafe Swift.String(cString: name)
+        var candidates: [Swift.String] = []
+        while let slash = directory.lastIndex(of: "/"), slash != directory.startIndex {
+            directory = Swift.String(directory[..<slash])
+            candidates.append(directory + "/checkouts")
+        }
+        return candidates
     }
 
     private static func _directoryAncestor(
