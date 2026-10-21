@@ -1,11 +1,11 @@
 import File_System
 import Testing
 
+@testable import Manifest_Loader
+
 #if canImport(Darwin)
     import Darwin
 #endif
-
-@testable import Manifest_Loader
 
 extension Manifest {
     @Suite struct Test {
@@ -23,14 +23,18 @@ extension Manifest.Test.Integration {
             let foundationsRoot = Self._directoryAncestor(of: manifestPackageRoot, levels: 1)
 
             guard
-                let jsonPackagePath = Self._firstReadableDirectory([
-                    manifestPackageRoot + "/.build/checkouts/swift-json",
-                    foundationsRoot + "/swift-json",
-                ] + Self._checkoutsDirectoriesAboveTestImage().map { $0 + "/swift-json" }),
-                let fileSystemPackagePath = Self._firstReadableDirectory([
-                    manifestPackageRoot + "/.build/checkouts/swift-file-system",
-                    foundationsRoot + "/swift-file-system",
-                ] + Self._checkoutsDirectoriesAboveTestImage().map { $0 + "/swift-file-system" })
+                let jsonPackagePath = Self._firstReadableDirectory(
+                    [
+                        manifestPackageRoot + "/.build/checkouts/swift-json",
+                        foundationsRoot + "/swift-json",
+                    ] + Self._checkoutsDirectoriesAboveTestImage().map { $0 + "/swift-json" }
+                ),
+                let fileSystemPackagePath = Self._firstReadableDirectory(
+                    [
+                        manifestPackageRoot + "/.build/checkouts/swift-file-system",
+                        foundationsRoot + "/swift-file-system",
+                    ] + Self._checkoutsDirectoriesAboveTestImage().map { $0 + "/swift-file-system" }
+                )
             else {
 
                 Issue.record(
