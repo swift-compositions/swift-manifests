@@ -93,7 +93,7 @@ extension Manifest {
         throws(Self.Error)
     {
         let path: File.Path
-        do throws(Paths.Path.Error) {
+        do throws(Path.Error) {
             path = try File.Path(absolutePath)
         } catch {
             throw .projectMaterialization(reason: "invalid path \(absolutePath): \(error)")
@@ -111,7 +111,7 @@ extension Manifest {
         to absolutePath: Swift.String
     ) throws(Self.Error) {
         let path: File.Path
-        do throws(Paths.Path.Error) {
+        do throws(Path.Error) {
             path = try File.Path(absolutePath)
         } catch {
             throw .projectMaterialization(reason: "invalid path \(absolutePath): \(error)")
@@ -130,7 +130,7 @@ extension Manifest {
         throws(Self.Error) -> Swift.String
     {
         let path: File.Path
-        do throws(Paths.Path.Error) {
+        do throws(Path.Error) {
             path = try File.Path(absolutePath)
         } catch {
             throw .outputCaptureFailed(reason: "invalid path \(absolutePath): \(error)")

@@ -16,7 +16,7 @@ extension Manifest.Executable.Materializer {
     ) throws(Manifest.Executable.Error) {
         let sourcesParentDirectory: File.Path = configuration.evalRoot / "Sources"
         let executableSourceDirectory: File.Path
-        do throws(Paths.Path.Component.Error) {
+        do throws(Path::Path.Component.Error) {
             executableSourceDirectory = try sourcesParentDirectory.appending(
                 configuration.executableName
             )
@@ -229,7 +229,7 @@ extension Manifest.Executable.Materializer {
         }
         let consumer: File.Path
         let base: File.Path
-        do throws(Paths.Path.Error) {
+        do throws(Path::Path.Error) {
             consumer = try File.Path(consumerPath)
             base = try File.Path(root)
         } catch {
