@@ -1,160 +1,19 @@
 # swift-manifests
 
-![Development Status](https://img.shields.io/badge/status-active--development-blue.svg)
+Use this package when a tool takes its configuration from a Swift source file, such as a `Lint.swift` at a package root, and you need to compile that file and get its value back, combine it with the manifests it inherits from, or run it as a program. Start from `Manifest.load(_:configuration:)` to evaluate one manifest, `Manifest.Resolver<M, C>` to fold a manifest and its parents into one configuration, `Manifest.Executable.dispatch(configuration:)` to build and run a manifest as an executable, and `Manifest.NestedPackage` when the consumer keeps a whole package in a `Lint` directory. If you only need to describe a manifest's location and dependencies, or find its parent directive, use swift-manifest.
 
-Swift-DSL manifest loader and chain resolver for tools that take their
-configuration as a typed Swift value rather than YAML or JSON.
-Compiles a consumer's manifest file (`Lint.swift`, `Format.swift`,
-etc.) via SwiftPM, captures the declared typed value, and folds parent
-manifests into a layered configuration.
+## Laws
 
-## Quick Start
-
-Loading a single manifest as a typed value:
-
-```swift
-import Manifest_Loader
-
-let configuration = Manifest.Configuration(
-    root: packageRoot,
-    filename: "Lint.swift",
-    binding: "manifest",
-    dependencies: [
-        Manifest.Dependency(
-            path: "../swift-linter",
-            name: "swift-linter",
-            product: "Linter",
-            imports: ["Linter"]
-        )
-    ]
-)
-
-let manifest = try Manifest.load(
-    Lint.Manifest.self,
-    configuration: configuration
-)
-```
-
-`Manifest.load` materializes a temporary eval project at
-`<root>/.swift-manifest/<filename>/`, runs `swift run --package-path`
-against it, captures the declared typed value as JSON, and decodes it
-back to the requested type. The consumer's manifest file MUST declare a
-file-scope `let <binding>: Output` whose right-hand side is a
-fully-formed value.
-
-Resolving a manifest with a parent chain:
-
-```swift
-import Manifest_Resolver
-
-let configuration = try Manifest.Resolver<Lint.Manifest, Lint.Configuration>
-    .resolve(
-        consumerPackageRoot: packageRoot,
-        manifestFilename: "Lint.swift",
-        dependencies: dependencies,
-        defaultConfiguration: { .empty },
-        buildConfiguration: { manifest, parent in
-            Lint.Configuration(
-                inheriting: parent,
-                rules: { },
-                excluded: manifest.excludedPaths.map { $0.description }
-            )
-        }
-    )
-```
-
-The resolver scans the consumer's manifest for a leading
-`// parent: <URL>` directive, walks the chain (cycle-tracked,
-depth-capped, per-process fetch-memoized), and folds parent manifests
-into a layered configuration via the consumer-supplied
-`buildConfiguration` closure.
-
-## Installation
-
-```swift
-dependencies: [
-    .package(url: "https://github.com/swift-compositions/swift-manifests.git", branch: "main"),
-]
-```
-
-> Pre-1.0: no version tags yet. APIs may change; pin a commit for reproducible builds.
-
-```swift
-.target(
-    name: "YourTool",
-    dependencies: [
-        .product(name: "Manifest Loader", package: "swift-manifests"),
-        .product(name: "Manifest Resolver", package: "swift-manifests"),
-    ]
-)
-```
-
-Depend on `Manifest Loader` alone if your tool only needs single-file
-typed-value extraction. Add `Manifest Resolver` when you need the
-parent-chain composition layer on top.
-
-## Two products
-
-| Product | What it does | When to use |
-|---|---|---|
-| `Manifest Loader` | Compiles one manifest file via SwiftPM and decodes its declared `let`-bound typed value | Tools that take a single config file with no inheritance story |
-| `Manifest Resolver` | Adds parent-chain resolution on top of `Manifest Loader` — scans for `// parent:` directives, fetches each ancestor, folds parent-first into a layered configuration | Tools with shared canonical configurations distributed to many consumers |
-
-The resolver re-exports the loader; consumers needing both can import
-`Manifest Resolver` alone.
-
-## `Manifest.Resolver<M, C>`
-
-The resolver is generic over two types:
-
-- **`M`** — the *manifest* type each layer in the chain decodes to. This
-  is the `JSON.Serializable` value the consumer's manifest file
-  declares (e.g., `Lint.Manifest`).
-- **`C`** — the *configuration* type the resolver folds the chain into
-  (e.g., `Lint.Configuration`). The consumer supplies the
-  `buildConfiguration` closure that lifts an `M` plus the accumulated
-  parent `C?` into the next layered `C`.
-
-`M` is the wire-shape; `C` is the runtime shape. The split lets
-consumers compose layered semantics — "later layer wins per rule",
-union of excluded paths, accumulated severity overrides — without
-forcing every parent's wire-shape to know about layering.
-
-```swift
-public static func resolve(
-    consumerPackageRoot: Swift.String,
-    manifestFilename: Swift.String,
-    dependencies: [Manifest.Dependency],
-    defaultConfiguration: () -> C,
-    buildConfiguration: (M, C?) -> C
-) throws(Manifest.Resolver.Error) -> C
-```
-
-Failure modes partition cleanly:
-
-- **Consumer manifest absent / load failure** — silently returns
-  `defaultConfiguration()`.
-- **No parent directive** — returns
-  `buildConfiguration(consumerManifest, nil)`.
-- **Parent chain failure** (fetch, cycle, depth, eval) — throws
-  `Manifest.Resolver.Error`. The caller decides whether to warn and
-  fall back to consumer-only or to default.
-
-## Nested-package shape
-
-`Manifest.NestedPackage.detect(at:)` and
-`.dispatch(at:arguments:)` provide a parallel discovery path for tools
-where the consumer authors a nested SwiftPM package (e.g., a `Lint/`
-directory containing its own `Package.swift` + executable target)
-rather than a single file. Detection returns `true` when both the
-nested directory and its `Package.swift` are accessible; `dispatch`
-delegates execution to the nested package's executable via
-`swift run --package-path`.
-
-The single-file path on `Manifest.Resolver` is unchanged; nested-package
-detection is additive. Tools detect first, dispatch when present, and
-fall through to the resolver for single-file consumers.
-
-## License
-
-Apache 2.0. See [LICENSE.md](LICENSE.md).
+- `Manifest.load(_:configuration:)` writes a SwiftPM package to `.swift-manifest/<filename>` under the root, copies the manifest into an executable target beside a generated entry point, and builds and runs it with `swift run`. Every load runs this subprocess. The generated files are left in place.
+- The entry point imports `JSON` and `File_System`, writes the binding's `jsonString()` to a file, and the loader decodes `Output` from that JSON. The dependencies must therefore provide those two modules as well as whatever the manifest imports. Every dependency is a local path package.
+- With `toolchain` set, that path is run as the `swift` executable. Otherwise `swift` is found through `/usr/bin/env`. A non-zero exit fails the load.
+- `Manifest.Resolver<M, C>` returns `defaultConfiguration` when the consumer's manifest file can't be read. It always evaluates the value bound to `manifest`, in the consumer and in every parent.
+- A parent directive is followed only when its value starts with `http://`, `https://` or `file://` and parses as a URI. Any other value is treated as no parent and ends the chain without an error.
+- Parents are fetched with `/usr/bin/curl` for HTTP and read directly for `file://`, and each is evaluated with the consumer's dependencies. A URI already seen in the chain is a cycle, and a chain longer than 16 parents is too deep. Any failure to fetch or evaluate a parent is reported as a parent fetch failure, while a failure in the consumer's own manifest is reported as a consumer load failure.
+- `buildConfiguration` folds from the farthest ancestor to the consumer. The farthest ancestor receives nil, and each later manifest receives the result so far. `Manifest.Resolver.walkParents(from:filename:dependencies:)` returns the ancestors in that same order, farthest first.
+- `Manifest.NestedPackage.detect(at:)` is true only when `Lint/Package.swift` exists under the root. `Manifest.NestedPackage.dispatch(at:arguments:executable:)` first deletes `Lint/Package.resolved` and `Lint/.build/workspace-state.json`, so dependencies resolve again, and keeps the rest of the build cache.
+- `Manifest.Executable.dispatch(configuration:)` writes `Package.swift` and `Sources/<executableName>/main.swift` under the eval root, then runs the executable with `swift run`.
+- Path dependencies are written relative to the consumer's package root and rewritten for the eval root, with one `..` added for each directory the eval root sits below the consumer root. An eval root outside the consumer root leaves the paths unchanged.
+- Platforms, language modes and ecosystem settings are copied into the generated `Package.swift` as Swift source text. Settings are emitted only when there is at least one.
+- A registry dependency pinned to a branch or revision, and a version range that isn't a half-open range, are written into the generated `Package.swift` as a comment instead of a dependency, so the failure shows up only when SwiftPM builds it.
+- Both dispatch functions return the child's exit code. A child ended or stopped by a signal returns the negated signal number.
