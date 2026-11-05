@@ -1,6 +1,5 @@
 internal import File_System
 public import JSON
-internal import Manifest
 public import Manifest
 internal import Manifest_Loader
 internal import Process
