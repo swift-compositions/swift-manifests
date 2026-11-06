@@ -1,5 +1,5 @@
 internal import Environment
-internal import File_System
+public import File_System
 public import JSON
 public import Manifest
 internal import Process
@@ -40,7 +40,7 @@ extension Manifest {
     public static func load<Output: JSON.Serializable>(
         _ output: Output.Type,
         from root: Swift.String,
-        named filename: Swift.String,
+        named filename: File.Path.Component,
         binding: Swift.String,
         dependencies: [Dependency],
         toolchain: Swift.String? = nil
@@ -49,7 +49,7 @@ extension Manifest {
             output,
             configuration: Configuration(
                 root: root,
-                filename: filename,
+                filename: filename.string,
                 binding: binding,
                 dependencies: dependencies,
                 toolchain: toolchain

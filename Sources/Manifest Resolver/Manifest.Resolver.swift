@@ -1,4 +1,4 @@
-internal import File_System
+public import File_System
 public import JSON
 public import Manifest
 internal import Manifest_Loader
@@ -14,7 +14,7 @@ extension Manifest.Resolver {
 
     public static func walkParents(
         from consumerSource: Swift.String,
-        filename: Swift.String,
+        filename: File.Path.Component,
         dependencies: [Manifest.Dependency]
     ) throws(Manifest.Resolver<M, C>.Error) -> [M] {
         guard let firstParentURI = parseParent(in: consumerSource) else {
@@ -29,7 +29,7 @@ extension Manifest.Resolver {
 
     public static func resolve(
         consumerPackageRoot: Swift.String,
-        filename: Swift.String,
+        filename: File.Path.Component,
         dependencies: [Manifest.Dependency],
         defaultConfiguration: () -> C,
         buildConfiguration: (M, C?) -> C
@@ -37,7 +37,7 @@ extension Manifest.Resolver {
 
         guard
             let consumerSource = readSource(
-                at: consumerPackageRoot + "/" + filename
+                at: consumerPackageRoot + "/" + filename.string
             )
         else {
             return defaultConfiguration()
@@ -124,7 +124,7 @@ extension Manifest.Resolver {
     @inline(__always)
     internal static func walk(
         startingAt rootURL: URI,
-        filename: Swift.String,
+        filename: File.Path.Component,
         dependencies: [Manifest.Dependency]
     ) throws(Manifest.Resolver<M, C>.Error) -> [M] {
         var visited: Set<URI> = []
@@ -326,7 +326,7 @@ extension Manifest.Resolver {
     internal static func evalParent(
         content: Swift.String,
         url uri: URI,
-        filename: Swift.String,
+        filename: File.Path.Component,
         dependencies: [Manifest.Dependency]
     ) throws(Manifest.Resolver<M, C>.Error) -> M {
         let tempDirectory: File.Path
@@ -344,7 +344,7 @@ extension Manifest.Resolver {
             )
         }
         let tempDirectoryString = tempDirectory.description
-        let tempFilePathString = tempDirectoryString + "/" + filename
+        let tempFilePathString = tempDirectoryString + "/" + filename.string
 
         do throws(Process.Error) {
             _ = try Process.Spawn.run(

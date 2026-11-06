@@ -27,7 +27,7 @@ extension Manifest.Executable {
 
         public let environment: [Swift.String: Swift.String]?
 
-        public let toolsVersion: Swift.String
+        public let toolsVersion: Version.Tools
 
         public init(
             consumerPackageRoot: File.Path,
@@ -40,7 +40,7 @@ extension Manifest.Executable {
             ecosystemSettings: [Swift.String]? = nil,
             arguments: [Swift.String] = [],
             environment: [Swift.String: Swift.String]? = nil,
-            toolsVersion: Swift.String
+            toolsVersion: Version.Tools
         ) {
             self.consumerPackageRoot = consumerPackageRoot
             self.consumerSourcePath = consumerSourcePath
