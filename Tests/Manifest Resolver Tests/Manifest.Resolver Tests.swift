@@ -1,3 +1,4 @@
+import Path
 import File_System
 import Testing
 import URI_Standard
@@ -218,9 +219,9 @@ extension `Manifest.Resolver Tests`.Integration {
             let configuration = try Self.resolve(
                 root: root,
                 dependencies: [
-                    Manifest.Dependency(path: jsonPackagePath, name: "swift-json", product: "JSON", imports: []),
+                    Manifest.Dependency(path: Path::Path(stringLiteral: jsonPackagePath), name: "swift-json", product: "JSON", imports: []),
                     Manifest.Dependency(
-                        path: fileSystemPackagePath,
+                        path: Path::Path(stringLiteral: fileSystemPackagePath),
                         name: "swift-file-system",
                         product: "File System",
                         imports: []

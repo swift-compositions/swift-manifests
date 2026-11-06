@@ -1,3 +1,4 @@
+import Path
 import File_System
 import Testing
 
@@ -63,13 +64,13 @@ extension Manifest.Test.Integration {
                 binding: "manifest",
                 dependencies: [
                     Manifest.Dependency(
-                        path: jsonPackagePath,
+                        path: Path::Path(stringLiteral: jsonPackagePath),
                         name: "swift-json",
                         product: "JSON",
                         imports: []
                     ),
                     Manifest.Dependency(
-                        path: fileSystemPackagePath,
+                        path: Path::Path(stringLiteral: fileSystemPackagePath),
                         name: "swift-file-system",
                         product: "File System",
                         imports: []
