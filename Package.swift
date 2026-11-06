@@ -46,7 +46,7 @@ let package = Package(
             name: "Manifest Resolver",
             dependencies: [
                 .product(name: "Manifest", package: "swift-manifest"),
-                "Manifest Loader",
+                .target(name: "Manifest Loader"),
                 .product(name: "File System", package: "swift-file-system"),
                 .product(name: "Process", package: "swift-process"),
                 .product(name: "URI Standard", package: "swift-uri-standard"),
@@ -67,8 +67,8 @@ let package = Package(
         .target(
             name: "Manifests Test Support",
             dependencies: [
-                "Manifest Loader",
-                "Manifest Resolver",
+                .target(name: "Manifest Loader"),
+                .target(name: "Manifest Resolver"),
                 .product(name: "Manifest Test Support", package: "swift-manifest"),
             ],
             path: "Tests/Support"
@@ -77,17 +77,17 @@ let package = Package(
         .testTarget(
             name: "Manifest Loader Tests",
             dependencies: [
-                "Manifest Loader",
-                "Manifests Test Support",
+                .target(name: "Manifest Loader"),
+                .target(name: "Manifests Test Support"),
                 .product(name: "File System", package: "swift-file-system"),
             ]
         ),
         .testTarget(
             name: "Manifest Resolver Tests",
             dependencies: [
-                "Manifest Resolver",
-                "Manifest Loader",
-                "Manifests Test Support",
+                .target(name: "Manifest Resolver"),
+                .target(name: "Manifest Loader"),
+                .target(name: "Manifests Test Support"),
                 .product(name: "File System", package: "swift-file-system"),
                 .product(name: "URI Standard", package: "swift-uri-standard"),
             ]
@@ -95,8 +95,8 @@ let package = Package(
         .testTarget(
             name: "Manifest Executable Tests",
             dependencies: [
-                "Manifest Executable",
-                "Manifests Test Support",
+                .target(name: "Manifest Executable"),
+                .target(name: "Manifests Test Support"),
                 .product(name: "File System", package: "swift-file-system"),
             ]
         ),
