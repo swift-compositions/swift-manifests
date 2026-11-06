@@ -8,13 +8,15 @@ import Testing
     import Darwin
 #endif
 
-extension Manifest {
+enum `Manifest Tests` {}
+
+extension `Manifest Tests` {
     @Suite struct Test {
         @Suite(.serialized) struct Integration {}
     }
 }
 
-extension Manifest.Test.Integration {
+extension `Manifest Tests`.Test.Integration {
 
     #if !os(Windows)
         @Test

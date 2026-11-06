@@ -3,7 +3,9 @@ import Testing
 
 @testable import Manifest_Executable
 
-extension Manifest.Executable {
+enum `Manifest.Executable Tests` {}
+
+extension `Manifest.Executable Tests` {
     @Suite struct Test {
         @Suite struct `Relative Prefix` {}
         @Suite struct `Resolve` {}
@@ -11,7 +13,7 @@ extension Manifest.Executable {
     }
 }
 
-extension Manifest.Executable.Test.`Relative Prefix` {
+extension `Manifest.Executable Tests`.Test.`Relative Prefix` {
     @Test
     func `descendant evalRoot returns one dotdot per extra segment`() throws {
         let consumer: File.Path = try File.Path("/tmp/swift-foo")
@@ -45,7 +47,7 @@ extension Manifest.Executable.Test.`Relative Prefix` {
     }
 }
 
-extension Manifest.Executable.Test.Resolve {
+extension `Manifest.Executable Tests`.Test.Resolve {
     @Test
     func `dot self-reference returns root prefix verbatim`() throws {
         let result: Swift.String = try Manifest.Executable.Materializer.resolve(
@@ -74,7 +76,7 @@ extension Manifest.Executable.Test.Resolve {
     }
 }
 
-extension Manifest.Executable.Test.`Render Package Swift` {
+extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
     @Test
     func `minimal Configuration emits well-formed Package_swift`() throws {
         let configuration = try Self.makeFixtureConfiguration()
@@ -214,7 +216,7 @@ extension Manifest.Executable.Test.`Render Package Swift` {
     }
 }
 
-extension Manifest.Executable.Test.`Render Package Swift` {
+extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
 
     fileprivate static func makeFixtureConfiguration() throws -> Manifest.Executable.Configuration {
         Manifest.Executable.Configuration(

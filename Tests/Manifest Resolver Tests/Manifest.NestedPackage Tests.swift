@@ -3,7 +3,9 @@ import Testing
 
 @testable import Manifest_Resolver
 
-extension Manifest.NestedPackage {
+enum `Manifest.NestedPackage Tests` {}
+
+extension `Manifest.NestedPackage Tests` {
     @Suite struct Test {
 
         private static func makeTemporaryRoot(key: Swift.String) throws -> File.Path {
@@ -179,7 +181,7 @@ extension Manifest.NestedPackage {
     }
 }
 
-extension Manifest.NestedPackage.Test {
+extension `Manifest.NestedPackage Tests`.Test {
     @Test
     func `dispatch runs the Lint executable by default`() {
         let invocation = Manifest.NestedPackage.invocation(
