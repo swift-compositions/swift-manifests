@@ -16,32 +16,32 @@ extension `Manifest.Executable Tests` {
 extension `Manifest.Executable Tests`.Test.`Relative Prefix` {
     @Test
     func `descendant evalRoot returns one dotdot per extra segment`() throws {
-        let consumer: File.Path = try File.Path("/tmp/swift-foo")
-        let eval: File.Path = try File.Path("/tmp/swift-foo/.swift-lint/eval")
+        let consumer: File.Path = File.Path("/tmp/swift-foo")
+        let eval: File.Path = File.Path("/tmp/swift-foo/.swift-lint/eval")
         let prefix = Manifest.Executable.Materializer.relativePrefix(from: eval, to: consumer)
         #expect(prefix == "../..")
     }
 
     @Test
     func `single-segment descendant returns single dotdot`() throws {
-        let consumer: File.Path = try File.Path("/tmp/swift-foo")
-        let eval: File.Path = try File.Path("/tmp/swift-foo/.swift-cache")
+        let consumer: File.Path = File.Path("/tmp/swift-foo")
+        let eval: File.Path = File.Path("/tmp/swift-foo/.swift-cache")
         let prefix = Manifest.Executable.Materializer.relativePrefix(from: eval, to: consumer)
         #expect(prefix == "..")
     }
 
     @Test
     func `non-descendant evalRoot returns dot defensively`() throws {
-        let consumer: File.Path = try File.Path("/tmp/swift-foo")
-        let eval: File.Path = try File.Path("/tmp/swift-bar/eval")
+        let consumer: File.Path = File.Path("/tmp/swift-foo")
+        let eval: File.Path = File.Path("/tmp/swift-bar/eval")
         let prefix = Manifest.Executable.Materializer.relativePrefix(from: eval, to: consumer)
         #expect(prefix == ".")
     }
 
     @Test
     func `equal paths return dot`() throws {
-        let consumer: File.Path = try File.Path("/tmp/swift-foo")
-        let eval: File.Path = try File.Path("/tmp/swift-foo")
+        let consumer: File.Path = File.Path("/tmp/swift-foo")
+        let eval: File.Path = File.Path("/tmp/swift-foo")
         let prefix = Manifest.Executable.Materializer.relativePrefix(from: eval, to: consumer)
         #expect(prefix == ".")
     }
@@ -106,9 +106,9 @@ extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
     @Test
     func `url-from dep emits unchanged`() throws {
         let configuration = Manifest.Executable.Configuration(
-            consumerPackageRoot: try File.Path("/tmp/swift-foo"),
-            consumerSourcePath: try File.Path("/tmp/swift-foo/Lint.swift"),
-            evalRoot: try File.Path("/tmp/swift-foo/.swift-lint/eval"),
+            consumerPackageRoot: File.Path("/tmp/swift-foo"),
+            consumerSourcePath: File.Path("/tmp/swift-foo/Lint.swift"),
+            evalRoot: File.Path("/tmp/swift-foo/.swift-lint/eval"),
             executableName: "Lint",
             dependencies: [
                 Package.Dependency(
@@ -137,9 +137,9 @@ extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
     @Test
     func `url-range dep emits half-open range form`() throws {
         let configuration = Manifest.Executable.Configuration(
-            consumerPackageRoot: try File.Path("/tmp/swift-foo"),
-            consumerSourcePath: try File.Path("/tmp/swift-foo/Lint.swift"),
-            evalRoot: try File.Path("/tmp/swift-foo/.swift-lint/eval"),
+            consumerPackageRoot: File.Path("/tmp/swift-foo"),
+            consumerSourcePath: File.Path("/tmp/swift-foo/Lint.swift"),
+            evalRoot: File.Path("/tmp/swift-foo/.swift-lint/eval"),
             executableName: "Lint",
             dependencies: [
                 Package.Dependency(
@@ -168,9 +168,9 @@ extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
     @Test
     func `ecosystemSettings nil omits trailing for-loop`() throws {
         let configuration = Manifest.Executable.Configuration(
-            consumerPackageRoot: try File.Path("/tmp/swift-foo"),
-            consumerSourcePath: try File.Path("/tmp/swift-foo/Lint.swift"),
-            evalRoot: try File.Path("/tmp/swift-foo/.swift-lint/eval"),
+            consumerPackageRoot: File.Path("/tmp/swift-foo"),
+            consumerSourcePath: File.Path("/tmp/swift-foo/Lint.swift"),
+            evalRoot: File.Path("/tmp/swift-foo/.swift-lint/eval"),
             executableName: "Lint",
             dependencies: [],
             platforms: [".macOS(.v27)"],
@@ -187,9 +187,9 @@ extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
     @Test
     func `ecosystemSettings non-empty emits trailing for-loop with settings`() throws {
         let configuration = Manifest.Executable.Configuration(
-            consumerPackageRoot: try File.Path("/tmp/swift-foo"),
-            consumerSourcePath: try File.Path("/tmp/swift-foo/Lint.swift"),
-            evalRoot: try File.Path("/tmp/swift-foo/.swift-lint/eval"),
+            consumerPackageRoot: File.Path("/tmp/swift-foo"),
+            consumerSourcePath: File.Path("/tmp/swift-foo/Lint.swift"),
+            evalRoot: File.Path("/tmp/swift-foo/.swift-lint/eval"),
             executableName: "Lint",
             dependencies: [],
             platforms: [".macOS(.v27)"],
@@ -220,9 +220,9 @@ extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
 
     fileprivate static func makeFixtureConfiguration() throws -> Manifest.Executable.Configuration {
         Manifest.Executable.Configuration(
-            consumerPackageRoot: try File.Path("/tmp/swift-foo"),
-            consumerSourcePath: try File.Path("/tmp/swift-foo/Lint.swift"),
-            evalRoot: try File.Path("/tmp/swift-foo/.swift-lint/eval"),
+            consumerPackageRoot: File.Path("/tmp/swift-foo"),
+            consumerSourcePath: File.Path("/tmp/swift-foo/Lint.swift"),
+            evalRoot: File.Path("/tmp/swift-foo/.swift-lint/eval"),
             executableName: "Lint",
             dependencies: [
                 Package.Dependency(
