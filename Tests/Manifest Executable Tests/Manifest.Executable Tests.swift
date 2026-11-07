@@ -7,10 +7,15 @@ enum `Manifest.Executable Tests` {}
 
 extension `Manifest.Executable Tests` {
     @Suite struct Test {
-        @Suite struct `Relative Prefix` {}
-        @Suite struct `Resolve` {}
-        @Suite struct `Render Package Swift` {}
     }
+}
+
+extension `Manifest.Executable Tests`.Test {
+    @Suite struct `Relative Prefix` {}
+
+    @Suite struct `Resolve` {}
+
+    @Suite struct `Render Package Swift` {}
 }
 
 extension `Manifest.Executable Tests`.Test.`Relative Prefix` {
