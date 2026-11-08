@@ -276,7 +276,7 @@ extension Manifest.Executable.Materializer {
             bytes = try File(path).read.full { (span: Swift.Span<Byte>) -> [Byte] in
                 var array: [Byte] = []
                 array.reserveCapacity(span.count)
-                for i in 0..<span.count {
+                (0..<span.count).forEach { i in
                     array.append(span[i])
                 }
                 return array

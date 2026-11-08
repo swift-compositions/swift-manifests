@@ -84,7 +84,7 @@ extension Manifest.Resolver {
                 (span: Swift.Span<Byte>) -> [Byte] in
                 var array: [Byte] = []
                 array.reserveCapacity(span.count)
-                for i in 0..<span.count { array.append(span[i]) }
+                (0..<span.count).forEach { i in array.append(span[i]) }
                 return array
             }
             return Swift.String(decoding: bytes, as: UTF8.self)
@@ -229,7 +229,7 @@ extension Manifest.Resolver {
                 (span: Swift.Span<Byte>) -> [Byte] in
                 var array: [Byte] = []
                 array.reserveCapacity(span.count)
-                for i in 0..<span.count { array.append(span[i]) }
+                (0..<span.count).forEach { i in array.append(span[i]) }
                 return array
             }
             return Swift.String(decoding: bytes, as: UTF8.self)
@@ -293,7 +293,7 @@ extension Manifest.Resolver {
                 (span: Swift.Span<Byte>) -> [Byte] in
                 var array: [Byte] = []
                 array.reserveCapacity(span.count)
-                for i in 0..<span.count { array.append(span[i]) }
+                (0..<span.count).forEach { i in array.append(span[i]) }
                 return array
             }
             content = Swift.String(decoding: bytes, as: UTF8.self)
