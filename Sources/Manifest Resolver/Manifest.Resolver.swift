@@ -17,7 +17,7 @@ extension Manifest.Resolver {
         filename: File.Path.Component,
         dependencies: [Manifest.Dependency]
     ) throws(Manifest.Resolver<M, C>.Error) -> [M] {
-        guard let firstParentURI = parseParent(in: consumerSource) else {
+        guard let firstParentURI = try parseParent(in: consumerSource) else {
             return []
         }
         return try walk(
@@ -56,7 +56,7 @@ extension Manifest.Resolver {
             throw .consumerLoadFailed(error)
         }
 
-        guard let firstParentURI = parseParent(in: consumerSource) else {
+        guard let firstParentURI = try parseParent(in: consumerSource) else {
             return buildConfiguration(consumerManifest, nil)
         }
 
@@ -94,22 +94,24 @@ extension Manifest.Resolver {
     }
 
     @inline(__always)
-    private static func parseParent(
+    internal static func parseParent(
         in source: Swift.String
-    ) -> URI? {
+    ) throws(Manifest.Resolver<M, C>.Error) -> URI? {
         guard let urlBytes = Manifest.Parent.scan(in: source) else {
             return nil
         }
+        let urlString = Swift.String(decoding: urlBytes, as: UTF8.self)
         guard
             urlBytes.starts(with: schemePrefixHTTP)
                 || urlBytes.starts(with: schemePrefixHTTPS)
                 || urlBytes.starts(with: schemePrefixFile)
-        else { return nil }
-        let urlString = Swift.String(decoding: urlBytes, as: UTF8.self)
+        else {
+            throw .invalidParent(directive: urlString, reason: "only http://, https:// and file:// parents are supported")
+        }
         do throws(RFC_3986.Error) {
             return try URI(urlString)
         } catch {
-            return nil
+            throw .invalidParent(directive: urlString, reason: "\(error)")
         }
     }
 
@@ -153,20 +155,7 @@ extension Manifest.Resolver {
             )
             chain.append(parentManifest)
 
-            if let nextBytes = Manifest.Parent.scan(in: content),
-                nextBytes.starts(with: schemePrefixHTTP)
-                    || nextBytes.starts(with: schemePrefixHTTPS)
-                    || nextBytes.starts(with: schemePrefixFile)
-            {
-                let urlString = Swift.String(decoding: nextBytes, as: UTF8.self)
-                do throws(RFC_3986.Error) {
-                    currentURI = try URI(urlString)
-                } catch {
-                    currentURI = nil
-                }
-            } else {
-                currentURI = nil
-            }
+            currentURI = try parseParent(in: content)
         }
 
         chain.reverse()

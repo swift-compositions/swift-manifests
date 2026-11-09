@@ -12,5 +12,8 @@ extension Manifest.Resolver {
         case parentChainTooDeep(depth: Swift.Int)
 
         case consumerLoadFailed(Manifest.Error)
+
+        /// A `// parent:` directive whose value has an unsupported scheme or does not parse as a URI.
+        case invalidParent(directive: Swift.String, reason: Swift.String)
     }
 }

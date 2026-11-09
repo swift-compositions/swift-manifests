@@ -262,3 +262,53 @@ extension `Manifest.Resolver Tests`.Integration {
         return nil
     }
 }
+
+extension `Manifest.Resolver Tests`.`Edge Case` {
+    @Test
+    func `parent directive with an unsupported scheme is reported`() {
+        #expect {
+            try Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>.parseParent(
+                in: "// parent: ftp://example.com/Lint.swift\nlet manifest: Int = 1\n"
+            )
+        } throws: { error in
+            guard
+                case Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>.Error
+                    .invalidParent(let directive, _) = error
+            else { return false }
+            return directive == "ftp://example.com/Lint.swift"
+        }
+    }
+
+    @Test
+    func `walkParents reports an unsupported parent scheme instead of ending the chain`() {
+        #expect {
+            try Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>.walkParents(
+                from: "// parent: git://example.com/Lint.swift\nlet manifest: Int = 1\n",
+                filename: "Lint.swift",
+                dependencies: []
+            )
+        } throws: { error in
+            guard
+                case Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>.Error
+                    .invalidParent = error
+            else { return false }
+            return true
+        }
+    }
+
+    @Test
+    func `source without a parent directive has no parent`() throws {
+        let parent = try Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>.parseParent(
+            in: "let manifest: Int = 1\n"
+        )
+        #expect(parent == nil)
+    }
+
+    @Test
+    func `https parent directive parses as a URI`() throws {
+        let parent = try Manifest.Resolver<Swift.Int, `Manifest.Resolver Tests`.Configuration>.parseParent(
+            in: "// parent: https://example.com/Lint.swift\nlet manifest: Int = 1\n"
+        )
+        #expect(parent != nil)
+    }
+}
