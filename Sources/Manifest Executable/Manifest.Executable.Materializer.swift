@@ -84,10 +84,10 @@ extension Manifest.Executable.Materializer {
                 lines.append("        .package(path: \"\(resolvedPath)\"),")
 
             case .url(let url, let requirement):
-                lines.append(Self.render(url: url.value, requirement: requirement))
+                lines.append(try Self.render(url: url.value, requirement: requirement))
 
             case .registry(let identity, let requirement):
-                lines.append(Self.render(registry: identity, requirement: requirement))
+                lines.append(try Self.render(registry: identity, requirement: requirement))
             }
         }
 
@@ -138,7 +138,7 @@ extension Manifest.Executable.Materializer {
     fileprivate static func render(
         url: Swift.String,
         requirement: Package.Requirement
-    ) -> Swift.String {
+    ) throws(Manifest.Executable.Error) -> Swift.String {
         switch requirement {
         case .from(let version):
             return "        .package(url: \"\(url)\", from: \"\(version)\"),"
@@ -150,7 +150,8 @@ extension Manifest.Executable.Materializer {
             return "        .package(url: \"\(url)\", .upToNextMinor(from: \"\(version)\")),"
 
         case .range(let range):
-            return "        .package(url: \"\(url)\", \(Self.rangeLiteral(range))),"
+            let bounds: Swift.String = try Self.rangeLiteral(range, of: url)
+            return "        .package(url: \"\(url)\", \(bounds)),"
 
         case .exact(let version):
             return "        .package(url: \"\(url)\", exact: \"\(version)\"),"
@@ -166,7 +167,7 @@ extension Manifest.Executable.Materializer {
     fileprivate static func render(
         registry identity: Package.Identity,
         requirement: Package.Requirement
-    ) -> Swift.String {
+    ) throws(Manifest.Executable.Error) -> Swift.String {
         let id: Swift.String = "\(identity.scope).\(identity.name)"
         switch requirement {
         case .from(let version):
@@ -179,24 +180,29 @@ extension Manifest.Executable.Materializer {
             return "        .package(id: \"\(id)\", .upToNextMinor(from: \"\(version)\")),"
 
         case .range(let range):
-            return "        .package(id: \"\(id)\", \(Self.rangeLiteral(range))),"
+            let bounds: Swift.String = try Self.rangeLiteral(range, of: id)
+            return "        .package(id: \"\(id)\", \(bounds)),"
 
         case .exact(let version):
             return "        .package(id: \"\(id)\", exact: \"\(version)\"),"
 
         case .branch, .revision:
-
-            return "        // ERROR: registry deps do not support branch/revision: \(id)"
+            throw .materializationFailed(
+                reason: "registry dependency `\(id)` cannot be pinned to a branch or revision"
+            )
         }
     }
 
     fileprivate static func rangeLiteral(
-        _ range: Version.Range<Version.Semantic>
-    ) -> Swift.String {
+        _ range: Version.Range<Version.Semantic>,
+        of package: Swift.String
+    ) throws(Manifest.Executable.Error) -> Swift.String {
         guard case .inclusive(let lower) = range.lowerBound,
             case .exclusive(let upper) = range.upperBound
         else {
-            return "/* ERROR: range deps require .inclusive lower / .exclusive upper */"
+            throw .materializationFailed(
+                reason: "dependency `\(package)` needs a range with an inclusive lower and an exclusive upper bound"
+            )
         }
         return "\"\(lower)\"..<\"\(upper)\""
     }

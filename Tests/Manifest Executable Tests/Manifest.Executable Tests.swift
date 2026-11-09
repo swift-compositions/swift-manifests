@@ -222,6 +222,68 @@ extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
 }
 
 extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
+    @Test
+    func `registry dep pinned to a branch fails materialization`() {
+        let configuration = Self.makeConfiguration(
+            source: .registry(Package.Identity(scope: "example", name: "lib"), .branch("main"))
+        )
+        #expect {
+            try Manifest.Executable.Materializer.renderPackageSwift(configuration: configuration)
+        } throws: { error in
+            guard case Manifest.Executable.Error.materializationFailed = error else { return false }
+            return true
+        }
+    }
+
+    @Test
+    func `registry dep pinned to a revision fails materialization`() {
+        let configuration = Self.makeConfiguration(
+            source: .registry(Package.Identity(scope: "example", name: "lib"), .revision("abc123"))
+        )
+        #expect {
+            try Manifest.Executable.Materializer.renderPackageSwift(configuration: configuration)
+        } throws: { error in
+            guard case Manifest.Executable.Error.materializationFailed = error else { return false }
+            return true
+        }
+    }
+
+    @Test
+    func `closed range dep fails materialization`() {
+        let range = Version.Range<Version.Semantic>(
+            lowerBound: .inclusive(Version.Semantic(major: 602, minor: 0, patch: 0)),
+            upperBound: .inclusive(Version.Semantic(major: 603, minor: 0, patch: 0))
+        )
+        let configuration = Self.makeConfiguration(
+            source: .url("https://github.com/swiftlang/swift-syntax.git", .range(range))
+        )
+        #expect {
+            try Manifest.Executable.Materializer.renderPackageSwift(configuration: configuration)
+        } throws: { error in
+            guard case Manifest.Executable.Error.materializationFailed = error else { return false }
+            return true
+        }
+    }
+
+    fileprivate static func makeConfiguration(
+        source: Package.Dependency.Source
+    ) -> Manifest.Executable.Configuration {
+        Manifest.Executable.Configuration(
+            consumerPackageRoot: File.Path("/tmp/swift-foo"),
+            consumerSourcePath: File.Path("/tmp/swift-foo/Lint.swift"),
+            evalRoot: File.Path("/tmp/swift-foo/.swift-lint/eval"),
+            executableName: "Lint",
+            dependencies: [
+                Package.Dependency(source: source, name: "lib", products: ["Lib"])
+            ],
+            platforms: [".macOS(.v27)"],
+            swiftLanguageModes: [".v6"],
+            toolsVersion: Version.Tools(major: 6, minor: 4)
+        )
+    }
+}
+
+extension `Manifest.Executable Tests`.Test.`Render Package Swift` {
 
     fileprivate static func makeFixtureConfiguration() throws -> Manifest.Executable.Configuration {
         Manifest.Executable.Configuration(
